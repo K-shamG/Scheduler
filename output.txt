@@ -1,14 +1,14 @@
-Pid	Old State	New State
-1	ready		running
-2	ready		waiting
-3	ready		waiting
-4	ready		waiting
-5	ready		waiting
-2	waiting		ready
-2	ready		running
-3	waiting		ready
-3	ready		running
-4	waiting		ready
-4	ready		running
-5	waiting		ready
-5	ready		running
+Time of Transition	Pid	Old State	New State
+	0		1	ready		running
+	9		2	ready		waiting
+	12		3	ready		waiting
+	13		4	ready		waiting
+	17		5	ready		waiting
+	22		2	waiting		ready
+	22		2	ready		running
+	33		3	waiting		ready
+	33		3	ready		running
+	45		4	waiting		ready
+	45		4	ready		running
+	56		5	waiting		ready
+	56		5	ready		running

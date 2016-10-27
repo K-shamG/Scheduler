@@ -118,7 +118,7 @@ void FCFS()
 		exit(1);
 	}
 	
-	const char *text = "Pid\tOld State\tNew State";
+	const char *text = "Time of Transition\tPid\tOld State\tNew State";
 	fprintf(file, "%s\n", text);	
 	
 	sortFCFS();
@@ -128,19 +128,17 @@ void FCFS()
 	int totalTurnaround = 0;
 	int numProcesses = 5;  
 	
-	for(int i = 0; i < 5; i++) {
-	
-	
+	for(int i = 0; i < 5; i++) {	
 		if(i != 0){ 
-			fprintf(file, "%i", input[i].pid);
-		
-			const char *text2 = "\twaiting\t\tready";
+			fprintf(file, "\t%i\t\t", totalTurnaround);
+			fprintf(file, "%i\t", input[i].pid);
+			const char *text2 = "waiting\t\tready";
 			fprintf(file, "%s\n", text2);
 		}
 		
-		fprintf(file, "%i", input[i].pid);
-		
-		const char *text3 = "\tready\t\trunning";
+		fprintf(file, "\t%i\t\t", totalTurnaround);
+		fprintf(file, "%i\t", input[i].pid);
+		const char *text3 = "ready\t\trunning";
 		fprintf(file, "%s\n", text3);
 				
 		totalTurnaround += input[i].executionTime;
@@ -150,9 +148,9 @@ void FCFS()
 		
 		for(j= i+1; j < numProcesses; j++) {
 			if(input[j].wait == false) {
-				fprintf(file, "%i", input[j].pid);
-		
-				const char *text4 = "\tready\t\twaiting";
+				fprintf(file, "\t%i\t\t", input[j].arrivalTime);
+				fprintf(file, "%i\t", input[j].pid);
+				const char *text4 = "ready\t\twaiting";
 				fprintf(file, "%s\n", text4);
 			
 				input[j].waitingTime = totalTurnaround - input[j].arrivalTime;
