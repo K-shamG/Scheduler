@@ -84,6 +84,7 @@ void sortFCFS()
 	int k, m;
 	 //Create the ready queue and update every time a new process is scheduled
 	 for(k=0;k<5-1;k++)
+	 {
 		for(m=0;m<5-1-k;m++)    
 		{
 			if(input[m].arrivalTime>input[m+1].arrivalTime)
@@ -93,8 +94,9 @@ void sortFCFS()
 				input[m+1]=tmp;
 			}
 		}
+	 }
 }
-
+//comment
 void FCFS()
 {
 	sortFCFS();
