@@ -7,6 +7,11 @@ struct inputData
    int pid;
    int arrivalTime;
    int executionTime;
+   int turnaroundTime;
+   int waitingTime;
+   bool ready;
+   bool running;
+   bool waiting;
 };
 //ask TA if going to add more processes to change the '5'
 struct inputData input[5], tmp;
@@ -102,6 +107,29 @@ void FCFS()
 	sortFCFS();
 	printf("\n\nOrder processes will execute in for FCFS:");
 	printStruct(); 
+	
+	int turnaround = 0;
+	int numProcesses = 5; 
+	
+	for(int i = 0; i < 5; i++) {
+		input[i].waiting = false; 
+		input[i].ready = true;
+		input[i].ready = false;
+		input[i].running = true;
+		
+		turnaround += input[i].executionTime;
+		input[i].turnaroundTime +=turnaround;
+		int j;
+		
+		for(j= i+1; j < numProcesses; j++) {
+			input[j].waiting = true;
+			input[j].waitingTime += input[j-1].turnaroundTime;
+		}
+	}
+	
+	for(int k = 0; k < 5; k++) {
+		printf("\n%i Turnaround %i Waiting %i ", k+1, input[k].turnaroundTime, input[k].waitingTime);
+	}
 }
 
 
