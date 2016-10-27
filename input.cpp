@@ -9,9 +9,6 @@ struct inputData
    int executionTime;
    int turnaroundTime;
    int waitingTime;
-   bool ready;
-   bool running;
-   bool waiting;
    char state[]; 
 };
 //ask TA if going to add more processes to change the '5'
@@ -102,10 +99,9 @@ void sortFCFS()
 		}
 	 }
 }
-//comment
+
 void FCFS()
 {
-	
 	FILE* file = fopen("output.txt", "w");
 	if(file == NULL) {
 		printf("Error opening file!\n");
@@ -123,27 +119,32 @@ void FCFS()
 	int numProcesses = 5;  
 	
 	for(int i = 0; i < 5; i++) {
-		input[i].waiting = false; 
-		input[i].ready = true;
+	
+	
+		if(i != 0){ 
+			fprintf(file, "%i", input[i].pid);
+		
+			const char *text2 = "\twaiting\t\tready";
+			fprintf(file, "%s\n", text2);
+		}
 		
 		fprintf(file, "%i", input[i].pid);
 		
-		const char *text2 = "\twaiting\t\tready";
-		fprintf(file, "%s\n", text2);
-		
-		//printf("\n%s", s);
-		printf("\n%i %d %d" , input[i].pid, input[i].waiting, input[i].ready); 
-		printf("\n%i %d %d" , input[i].pid, input[i].waiting, input[i].ready); 
-		input[i].ready = false;
-		input[i].running = true;
-		
+		const char *text3 = "\tready\t\trunning";
+		fprintf(file, "%s\n", text3);
+				
 		totalTurnaround += input[i].executionTime;
 		input[i].turnaroundTime +=totalTurnaround;
 
 		int j;
 		
 		for(j= i+1; j < numProcesses; j++) {
-			input[j].waiting = true;
+			printf("\n%i", j);
+			fprintf(file, "%i", input[j].pid);
+		
+			const char *text4 = "\tready\t\twaiting";
+			fprintf(file, "%s\n", text4);
+			
 			input[j].waitingTime = totalTurnaround - input[j].arrivalTime;
 		}
 	}
