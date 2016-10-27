@@ -27,6 +27,7 @@ int main(int argc, char* argv[])
 	char *token;
 	char *data;
 	int in;
+	int repeat;
 
 	int i = 0;
 	
@@ -76,24 +77,32 @@ int main(int argc, char* argv[])
 		
     } 
     fclose(file);
-    printStruct();
-    
-    printf("\nPress 1 to execute with FCFS, press 2 to execute by priority\n");
-    scanf("%i", &in);
-	
-	if(in == 1) {
-		sortFCFS();
+   
+	while(true) { 
+		printStruct();   
+		printf("\nPress 1 to execute with FCFS, press 2 to execute by priority\n");
+		scanf("%i", &in);
+		if(in == 1) {
+			sortFCFS();
 		
+		}
+		else if(in == 2) {
+			sortPriority();
+		}
+		else {
+			printf("\nInvalid command");
+		}
+		scheduler();
+		
+		printf("\nPress 1 to sort by another algorithm, press 2 to quit\n");
+		scanf("%i", &repeat);
+		
+		if(repeat == 2) {
+			exit(0);
+		}
 	}
-	else if(in == 2) {
-		sortPriority();
-	}
-	else {
-		printf("\nInvalid command");
-	}
-	scheduler();
 
-    return 0;
+		return 0;
 }
 
 void printStruct()
