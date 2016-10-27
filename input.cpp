@@ -108,8 +108,8 @@ void FCFS()
 	printf("\n\nOrder processes will execute in for FCFS:");
 	printStruct(); 
 	
-	int turnaround = 0;
-	int numProcesses = 5; 
+	int totalTurnaround = 0;
+	int numProcesses = 5;  
 	
 	for(int i = 0; i < 5; i++) {
 		input[i].waiting = false; 
@@ -117,13 +117,14 @@ void FCFS()
 		input[i].ready = false;
 		input[i].running = true;
 		
-		turnaround += input[i].executionTime;
-		input[i].turnaroundTime +=turnaround;
+		totalTurnaround += input[i].executionTime;
+		input[i].turnaroundTime +=totalTurnaround;
+
 		int j;
 		
 		for(j= i+1; j < numProcesses; j++) {
 			input[j].waiting = true;
-			input[j].waitingTime += input[j-1].turnaroundTime;
+			input[j].waitingTime = totalTurnaround - input[j].arrivalTime;
 		}
 	}
 	
