@@ -173,7 +173,8 @@ void scheduler()
 	printStruct(); 
 	
 	int totalTurnaround = 0;
-	int numProcesses = 5;  
+	int numProcesses = 5; 
+	float averageTurnaround; 
 	
 	for(int i = 0; i < 5; i++) {
 		if(i != 0){ 
@@ -206,8 +207,20 @@ void scheduler()
 		}
 	}
 	
+	for(int k = 0; k < 5; k++) {
+		averageTurnaround += input[k].turnaroundTime;
+	}
+	averageTurnaround /= 5;
+	printf("\nAverage Turnaround = %f", averageTurnaround);
+	
+	const char *avg_turn = "\nAverage Turnaround";
+	fprintf(file, "%s", avg_turn);
+	fprintf(file, "\t%f", averageTurnaround);
+	
 	fclose(file);
 }
+
+	
 
 
 
