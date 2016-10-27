@@ -7,6 +7,7 @@ struct inputData
    int pid;
    int arrivalTime;
    int executionTime;
+   int priority;
    int turnaroundTime;
    int waitingTime;
    bool wait;
@@ -16,14 +17,16 @@ struct inputData
 struct inputData input[5], tmp;
 void printStruct();
 void sortFCFS();
-void FCFS();
 void setWaitToFalse();
+void sortPriority();
+void scheduler();
 
 int main(int argc, char* argv[])
 {
 	const char s[2] = " ";
 	char *token;
 	char *data;
+	int in;
 
 	int i = 0;
 	
@@ -31,7 +34,7 @@ int main(int argc, char* argv[])
 	
 	setWaitToFalse();
 
-    FILE* file = fopen("input.txt", "r"); 
+    FILE* file = fopen("pinput.txt", "r"); 
     char line[256];
 	
 	//each line
@@ -60,6 +63,10 @@ int main(int argc, char* argv[])
 				input[i].executionTime = x;
 				//printf("*ExecutionTime %i\n", input[i].executionTime);
 			}
+			else if(counter == 3) 
+			{
+				input[i].priority = x;
+			}
 			
 			token = strtok(NULL, s); 
 			counter++;
@@ -71,7 +78,20 @@ int main(int argc, char* argv[])
     fclose(file);
     printStruct();
     
-    FCFS();
+    printf("\nPress 1 to execute with FCFS, press 2 to execute by priority\n");
+    scanf("%i", &in);
+	
+	if(in == 1) {
+		sortFCFS();
+		
+	}
+	else if(in == 2) {
+		sortPriority();
+	}
+	else {
+		printf("\nInvalid command");
+	}
+	scheduler();
 
     return 0;
 }
@@ -104,13 +124,31 @@ void sortFCFS()
 	 }
 }
 
+void sortPriority() 
+{
+	int k, m;
+	 //Create the ready queue and update every time a new process is scheduled
+	 for(k=0;k<5-1;k++)
+	 {
+		for(m=0;m<5-1-k;m++)    
+		{
+			if(input[m].priority>input[m+1].priority)
+			{
+				tmp=input[m];
+				input[m]=input[m+1];
+				input[m+1]=tmp;
+			}
+		}
+	 }
+}
+
 void setWaitToFalse() {
 	for(int i = 0; i < 5; i++) {
 		input[i].wait = false;
 	}
 }
 
-void FCFS()
+void scheduler()
 {
 	FILE* file = fopen("output.txt", "w");
 	if(file == NULL) {
@@ -121,14 +159,14 @@ void FCFS()
 	const char *text = "Time of Transition\tPid\tOld State\tNew State";
 	fprintf(file, "%s\n", text);	
 	
-	sortFCFS();
-	printf("\n\nOrder processes will execute in for FCFS:");
+	//sortPriority();
+	printf("\n\nOrder processes will execute in for Priority Scheduling:");
 	printStruct(); 
 	
 	int totalTurnaround = 0;
 	int numProcesses = 5;  
 	
-	for(int i = 0; i < 5; i++) {	
+	for(int i = 0; i < 5; i++) {
 		if(i != 0){ 
 			fprintf(file, "\t%i\t\t", totalTurnaround);
 			fprintf(file, "%i\t", input[i].pid);
@@ -157,10 +195,6 @@ void FCFS()
 			}
 			input[j].wait = true;
 		}
-	}
-	
-	for(int k = 0; k < 5; k++) {
-		printf("\n%i Turnaround %i Waiting %i ", k+1, input[k].turnaroundTime, input[k].waitingTime);
 	}
 	
 	fclose(file);
