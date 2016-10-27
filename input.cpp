@@ -12,6 +12,7 @@ struct inputData
    bool ready;
    bool running;
    bool waiting;
+   char state[]; 
 };
 //ask TA if going to add more processes to change the '5'
 struct inputData input[5], tmp;
@@ -104,6 +105,16 @@ void sortFCFS()
 //comment
 void FCFS()
 {
+	
+	FILE* file = fopen("output.txt", "w");
+	if(file == NULL) {
+		printf("Error opening file!\n");
+		exit(1);
+	}
+	
+	const char *text = "Pid\tOld State\tNew State";
+	fprintf(file, "%s\n", text);	
+	
 	sortFCFS();
 	printf("\n\nOrder processes will execute in for FCFS:");
 	printStruct(); 
@@ -114,6 +125,15 @@ void FCFS()
 	for(int i = 0; i < 5; i++) {
 		input[i].waiting = false; 
 		input[i].ready = true;
+		
+		fprintf(file, "%i", input[i].pid);
+		
+		const char *text2 = "\twaiting\t\tready";
+		fprintf(file, "%s\n", text2);
+		
+		//printf("\n%s", s);
+		printf("\n%i %d %d" , input[i].pid, input[i].waiting, input[i].ready); 
+		printf("\n%i %d %d" , input[i].pid, input[i].waiting, input[i].ready); 
 		input[i].ready = false;
 		input[i].running = true;
 		
@@ -131,6 +151,8 @@ void FCFS()
 	for(int k = 0; k < 5; k++) {
 		printf("\n%i Turnaround %i Waiting %i ", k+1, input[k].turnaroundTime, input[k].waitingTime);
 	}
+	
+	fclose(file);
 }
 
 
