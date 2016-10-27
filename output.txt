@@ -6,15 +6,9 @@ Pid	Old State	New State
 5	ready		waiting
 2	waiting		ready
 2	ready		running
-3	ready		waiting
-4	ready		waiting
-5	ready		waiting
 3	waiting		ready
 3	ready		running
-4	ready		waiting
-5	ready		waiting
 4	waiting		ready
 4	ready		running
-5	ready		waiting
 5	waiting		ready
 5	ready		running

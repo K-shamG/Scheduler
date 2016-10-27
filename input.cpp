@@ -9,6 +9,7 @@ struct inputData
    int executionTime;
    int turnaroundTime;
    int waitingTime;
+   bool wait;
    char state[]; 
 };
 //ask TA if going to add more processes to change the '5'
@@ -16,6 +17,7 @@ struct inputData input[5], tmp;
 void printStruct();
 void sortFCFS();
 void FCFS();
+void setWaitToFalse();
 
 int main(int argc, char* argv[])
 {
@@ -26,6 +28,8 @@ int main(int argc, char* argv[])
 	int i = 0;
 	
 	int counter =0;
+	
+	setWaitToFalse();
 
     FILE* file = fopen("input.txt", "r"); 
     char line[256];
@@ -100,6 +104,12 @@ void sortFCFS()
 	 }
 }
 
+void setWaitToFalse() {
+	for(int i = 0; i < 5; i++) {
+		input[i].wait = false;
+	}
+}
+
 void FCFS()
 {
 	FILE* file = fopen("output.txt", "w");
@@ -139,13 +149,15 @@ void FCFS()
 		int j;
 		
 		for(j= i+1; j < numProcesses; j++) {
-			printf("\n%i", j);
-			fprintf(file, "%i", input[j].pid);
+			if(input[j].wait == false) {
+				fprintf(file, "%i", input[j].pid);
 		
-			const char *text4 = "\tready\t\twaiting";
-			fprintf(file, "%s\n", text4);
+				const char *text4 = "\tready\t\twaiting";
+				fprintf(file, "%s\n", text4);
 			
-			input[j].waitingTime = totalTurnaround - input[j].arrivalTime;
+				input[j].waitingTime = totalTurnaround - input[j].arrivalTime;
+			}
+			input[j].wait = true;
 		}
 	}
 	
