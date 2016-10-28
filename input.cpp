@@ -1,8 +1,9 @@
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
-struct inputData
+struct PCB 			
 {
    int pid;
    int arrivalTime;
@@ -11,40 +12,64 @@ struct inputData
    int turnaroundTime;
    int waitingTime;
    bool wait;
-   char state[]; 
 };
-//ask TA if going to add more processes to change the '5'
-struct inputData input[5], tmp;
+
+
+struct PCB *input, tmp; 	
+int numProcesses;
 void printStruct();
 void sortFCFS();
 void setWaitToFalse();
 void sortPriority();
-void scheduler();
+int scheduler();
+void promptUser();
+void countProcesses();
+void parseInputFile();
+void metrics(int totalTurnaround);
 
-int main(int argc, char* argv[])
-{
-	const char s[2] = " ";
-	char *token;
-	char *data;
-	int in;
-	int repeat;
 
-	int i = 0;
-	
-	int counter =0;
+int main(int argc, char* argv[])						
+{									
 	
 	setWaitToFalse();
-
-    FILE* file = fopen("pinput.txt", "r"); 
-    char line[256];
 	
-	//each line
+	countProcesses();
+	parseInputFile();
+	
+	promptUser();
+	
+	return 0;
+}
+
+
+void countProcesses()
+{
+	numProcesses = 0;
+	FILE* file = fopen("pinput.txt", "r"); 	
+	char line[256];	
+     while (fgets(line, sizeof(line), file)) {
+		 numProcesses++;
+	 }
+    input = (PCB *)malloc(numProcesses);
+    
+    fclose(file);
+}
+
+void parseInputFile()
+{
+	char *token;
+	char *data;
+	int counter = 0;
+	int i = 0; 
+	const char delimeter[2] = " ";			
+	
+	FILE* file = fopen("pinput.txt", "r"); 		
+    char line[256];
+
     while (fgets(line, sizeof(line), file)) {
 		data = line;
-        //printf("%s", line); 
-        //splits by delimeter
-		token = strtok(data, s);
-		//each line each token
+		token = strtok(data, delimeter);
+
 		while( token != NULL ) 
 		{
 			int x = atoi(token);
@@ -52,32 +77,33 @@ int main(int argc, char* argv[])
 		    if(counter == 0)
 		    {
 				input[i].pid = x;
-				//printf("Pid %i\n", x);
 			}
 			else if(counter == 1) 
 			{
 				input[i].arrivalTime= x;
-				//printf("ArrivalTime %i\n", x);
 			}
 			else if(counter == 2)
 			{
 				input[i].executionTime = x;
-				//printf("*ExecutionTime %i\n", input[i].executionTime);
 			}
 			else if(counter == 3) 
 			{
 				input[i].priority = x;
 			}
 			
-			token = strtok(NULL, s); 
+			token = strtok(NULL, delimeter);
 			counter++;
 		}
 		counter = 0;
 		i++;
-		
     } 
     fclose(file);
-   
+}
+
+void promptUser()
+{
+	int in, repeat;
+	int totalTurnaround;
 	while(true) { 
 		printStruct();   
 		printf("\nPress 1 to execute with FCFS, press 2 to execute by priority\n");
@@ -92,7 +118,8 @@ int main(int argc, char* argv[])
 		else {
 			printf("\nInvalid command");
 		}
-		scheduler();
+		totalTurnaround = scheduler();
+		metrics(totalTurnaround);
 		
 		printf("\nPress 1 to sort by another algorithm, press 2 to quit\n");
 		scanf("%i", &repeat);
@@ -101,27 +128,23 @@ int main(int argc, char* argv[])
 			exit(0);
 		}
 	}
-
-		return 0;
+	
 }
-
 void printStruct()
 {
-	int j;
 	printf("\nProcess\t   Arrival Time\t   Execution Time");
-	for(j=0; j < 5; j++)
+	for(int i=0; i < 5; i++)
     {
-		printf("\n  %i\t\t%i\t\t%i", input[j].pid, input[j].arrivalTime, input[j].executionTime);		
+		printf("\n  %i\t\t%i\t\t%i", input[i].pid, input[i].arrivalTime, input[i].executionTime);		
 	}
 }
 
 void sortFCFS()
 {
-	int k, m;
 	 //Create the ready queue and update every time a new process is scheduled
-	 for(k=0;k<5-1;k++)
+	 for(int k=0;k<numProcesses-1;k++)
 	 {
-		for(m=0;m<5-1-k;m++)    
+		for(int m=0;m<numProcesses-1-k;m++)    
 		{
 			if(input[m].arrivalTime>input[m+1].arrivalTime)
 			{
@@ -135,11 +158,10 @@ void sortFCFS()
 
 void sortPriority() 
 {
-	int k, m;
 	 //Create the ready queue and update every time a new process is scheduled
-	 for(k=0;k<5-1;k++)
+	 for(int k=0;k<numProcesses-1;k++)
 	 {
-		for(m=0;m<5-1-k;m++)    
+		for(int m=0;m<numProcesses-1-k;m++)    
 		{
 			if(input[m].priority>input[m+1].priority)
 			{
@@ -152,13 +174,15 @@ void sortPriority()
 }
 
 void setWaitToFalse() {
-	for(int i = 0; i < 5; i++) {
+	for(int i = 0; i < numProcesses; i++) {
 		input[i].wait = false;
 	}
 }
 
-void scheduler()
+
+int scheduler()
 {
+	
 	FILE* file = fopen("output.txt", "w");
 	if(file == NULL) {
 		printf("Error opening file!\n");
@@ -168,18 +192,16 @@ void scheduler()
 	const char *text = "Time of Transition\tPid\tOld State\tNew State";
 	fprintf(file, "%s\n", text);	
 	
-	//sortPriority();
-	printf("\n\nOrder processes will execute in for Priority Scheduling:");
+	printf("\n\nOrder processes will execute in:");
 	printStruct(); 
 	
 	int totalTurnaround = 0;
-	int numProcesses = 5; 
-	float averageTurnaround; 
+	int processes = numProcesses; 
 	
-	for(int i = 0; i < 5; i++) {
+	for(int i = 0; i < numProcesses; i++) {
 		if(i != 0){ 
-			fprintf(file, "\t%i\t\t", totalTurnaround);
-			fprintf(file, "%i\t", input[i].pid);
+			fprintf(file, "\t%i\t\t", totalTurnaround);			
+			fprintf(file, "%i\t", input[i].pid);				
 			const char *text2 = "waiting\t\tready";
 			fprintf(file, "%s\n", text2);
 		}
@@ -193,8 +215,7 @@ void scheduler()
 		input[i].turnaroundTime +=totalTurnaround;
 
 		int j;
-		
-		for(j= i+1; j < numProcesses; j++) {
+		for(j= i+1; j < processes; j++) {
 			if(input[j].wait == false) {
 				fprintf(file, "\t%i\t\t", input[j].arrivalTime);
 				fprintf(file, "%i\t", input[j].pid);
@@ -207,20 +228,40 @@ void scheduler()
 		}
 	}
 	
-	for(int k = 0; k < 5; k++) {
+	fclose(file);
+	return totalTurnaround;
+	
+}
+
+void metrics(int totalTurnaround)
+{	
+	float averageTurnaround;
+	float totalTime = 0;
+	float throughput = 0;
+	float totalWaitingTime = 0;
+	float avgWaitingTime = 0;
+	printf("\nAverage Turnaround = %i", totalTurnaround);
+	for(int k = 0; k < numProcesses; k++) {										
+																		
 		averageTurnaround += input[k].turnaroundTime;
 	}
-	averageTurnaround /= 5;
+	averageTurnaround /= numProcesses;
 	printf("\nAverage Turnaround = %f", averageTurnaround);
 	
-	const char *avg_turn = "\nAverage Turnaround";
-	fprintf(file, "%s", avg_turn);
-	fprintf(file, "\t%f", averageTurnaround);
+	for(int i = 0; i < numProcesses; i++) 
+	{
+		totalTime += input[i].executionTime;
+	}
+	throughput = numProcesses/totalTime;
+	printf("\nThroughput = %f", throughput);
+
+	for(int i = 0; i < numProcesses; i++) 
+	{
+		totalWaitingTime += input[i].executionTime;
+	}
+	avgWaitingTime = totalWaitingTime/numProcesses;
+	printf("\nAverage Waiting Time = %f", avgWaitingTime);
 	
-	fclose(file);
 }
 
 	
-
-
-
