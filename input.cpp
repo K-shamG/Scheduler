@@ -14,29 +14,44 @@ struct PCB
    bool wait;
 };
 
+typedef struct linkedlist{
+    struct PCB process;
+    struct linkedlist *next;
+}Node;
 
-struct PCB *input, tmp; 	
+
+struct PCB *input, tmp;
+Node *waiting = NULL;
+ 	
 int numProcesses;
 void printStruct();
 void sortFCFS();
 void setWaitToFalse();
 void sortPriority();
-int scheduler();
+int schedulerFCFS();
 void promptUser();
 void countProcesses();
 void parseInputFile();
 void metrics(int totalTurnaround);
-
+void resetAllPCB();
+void comparePriority();
+void schedulerPriority();
 
 int main(int argc, char* argv[])						
 {									
-	
-	setWaitToFalse();
+	resetAllPCB();
 	
 	countProcesses();
 	parseInputFile();
 	
-	promptUser();
+	//promptUser();
+	//sortPriority();
+	//int wow = scheduler();
+	//metrics(wow);
+	
+	sortFCFS();
+	schedulerPriority();
+	//printStruct();
 	
 	return 0;
 }
@@ -50,7 +65,7 @@ void countProcesses()
      while (fgets(line, sizeof(line), file)) {
 		 numProcesses++;
 	 }
-    input = (PCB *)malloc(numProcesses);
+    input = (PCB* )malloc(sizeof(PCB)*numProcesses);
     
     fclose(file);
 }
@@ -118,8 +133,9 @@ void promptUser()
 		else {
 			printf("\nInvalid command");
 		}
-		totalTurnaround = scheduler();
-		metrics(totalTurnaround);
+		//totalTurnaround = scheduler();
+		//metrics(totalTurnaround);
+		setWaitToFalse();
 		
 		printf("\nPress 1 to sort by another algorithm, press 2 to quit\n");
 		scanf("%i", &repeat);
@@ -173,14 +189,43 @@ void sortPriority()
 	 }
 }
 
+void comparePriority(struct PCB * array) {
+	int length = sizeof(array)/sizeof(array[0]);
+	
+	for(int k=0;k<length-1;k++)
+	{
+		for(int m=0;m<length-k;m++)    
+		{
+			if(array[m].priority > array[m+1].priority)
+			{
+				tmp=array[m];
+				array[m]=array[m+1];
+				array[m+1]=tmp;
+			}
+		}
+	 }
+}
+
 void setWaitToFalse() {
 	for(int i = 0; i < numProcesses; i++) {
 		input[i].wait = false;
 	}
 }
 
+void resetAllPCB() {
+	for(int i = 0; i < numProcesses; i++) {
+		input[i].wait = false;
+		input[i].turnaroundTime = 0;
+		input[i].pid = 0;
+		input[i].arrivalTime = 0;
+		input[i].executionTime = 0;
+		input[i].priority = 0;
+		input[i].waitingTime = 0; 
+	}
+}
 
-int scheduler()
+
+int schedulerFCFS()
 {
 	
 	FILE* file = fopen("output.txt", "w");
@@ -195,7 +240,7 @@ int scheduler()
 	printf("\n\nOrder processes will execute in:");
 	printStruct(); 
 	
-	int totalTurnaround = 0;
+	int totalTurnaround = input[0].arrivalTime;
 	int processes = numProcesses; 
 	
 	for(int i = 0; i < numProcesses; i++) {
@@ -230,6 +275,70 @@ int scheduler()
 	
 	fclose(file);
 	return totalTurnaround;
+	
+}
+
+void schedulerPriority() 
+{
+	bool x = true; 
+	struct PCB *tmp; 
+	/*
+		int length = 5;
+		my_struct *array = NULL;
+
+		array = (my_struct *)malloc(length * sizeof(my_struct));
+
+		length *= 2;
+		array = (my_struct *)realloc(array, length * sizeof(my_struct));
+	
+	*/
+	
+	int length;
+	struct PCB *waiting = NULL;
+	waiting = (PCB* )malloc(sizeof(PCB));
+	 
+	FILE* file = fopen("output.txt", "w");
+	if(file == NULL) {
+		printf("Error opening file!\n");
+		exit(1);
+	}
+
+	int totalTurnaround = input[0].arrivalTime; 
+	
+	for(int i = 0; i < numProcesses; i++) {
+		totalTurnaround += input[i].executionTime;
+		input[i].turnaroundTime +=totalTurnaround;
+		
+		for(int j = i+1; j < numProcesses; j++) {
+			if(input[j].arrivalTime < totalTurnaround) 
+			{
+				tmp = (PCB *)realloc(waiting, sizeof(PCB));
+				if(tmp == NULL)
+				{
+					free(waiting);
+				}
+				waiting = tmp;
+				if(!waiting) printf("NOT fgkjdj");
+				length = sizeof(waiting)/sizeof(waiting[0]);
+				waiting[length - 1] = input[j];
+				
+			}
+		}
+		
+		comparePriority(waiting);
+		
+		while(x){
+			printf("fsjdkljfdskj");
+			for(int i=0; i < 4; i++)
+			{
+				printf("\n%i", waiting[i].pid);		
+			}
+			x = false;
+		}
+		 
+	}
+	
+	fclose(file);
 	
 }
 
