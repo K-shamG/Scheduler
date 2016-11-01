@@ -14,14 +14,7 @@ struct PCB
    bool wait;
 };
 
-typedef struct linkedlist{
-    struct PCB process;
-    struct linkedlist *next;
-}Node;
-
-
-struct PCB *input, tmp;
-Node *waiting = NULL;
+struct PCB *input, tmp, *waiting;
  	
 int numProcesses;
 void printStruct();
@@ -36,6 +29,7 @@ void metrics(int totalTurnaround);
 void resetAllPCB();
 void comparePriority();
 void schedulerPriority();
+int growArray(PCB **user_array, int currentSize, int numNewElems);
 
 int main(int argc, char* argv[])						
 {									
@@ -133,8 +127,8 @@ void promptUser()
 		else {
 			printf("\nInvalid command");
 		}
-		//totalTurnaround = scheduler();
-		//metrics(totalTurnaround);
+		totalTurnaround = schedulerFCFS();
+		metrics(totalTurnaround);
 		setWaitToFalse();
 		
 		printf("\nPress 1 to sort by another algorithm, press 2 to quit\n");
@@ -189,18 +183,17 @@ void sortPriority()
 	 }
 }
 
-void comparePriority(struct PCB * array) {
-	int length = sizeof(array)/sizeof(array[0]);
-	
+void comparePriority() {
+	int length = sizeof(waiting[0])/sizeof(waiting);	
 	for(int k=0;k<length-1;k++)
 	{
 		for(int m=0;m<length-k;m++)    
 		{
-			if(array[m].priority > array[m+1].priority)
+			if(waiting[m].priority > waiting[m+1].priority)
 			{
-				tmp=array[m];
-				array[m]=array[m+1];
-				array[m+1]=tmp;
+				tmp=waiting[m];
+				waiting[m]=waiting[m+1];
+				waiting[m+1]=tmp;
 			}
 		}
 	 }
@@ -280,22 +273,7 @@ int schedulerFCFS()
 
 void schedulerPriority() 
 {
-	bool x = true; 
-	struct PCB *tmp; 
-	/*
-		int length = 5;
-		my_struct *array = NULL;
-
-		array = (my_struct *)malloc(length * sizeof(my_struct));
-
-		length *= 2;
-		array = (my_struct *)realloc(array, length * sizeof(my_struct));
-	
-	*/
-	
-	int length;
-	struct PCB *waiting = NULL;
-	waiting = (PCB* )malloc(sizeof(PCB));
+	int count = 0;
 	 
 	FILE* file = fopen("output.txt", "w");
 	if(file == NULL) {
@@ -311,31 +289,23 @@ void schedulerPriority()
 		
 		for(int j = i+1; j < numProcesses; j++) {
 			if(input[j].arrivalTime < totalTurnaround) 
-			{
-				tmp = (PCB *)realloc(waiting, sizeof(PCB));
-				if(tmp == NULL)
-				{
-					free(waiting);
-				}
-				waiting = tmp;
-				if(!waiting) printf("NOT fgkjdj");
-				length = sizeof(waiting)/sizeof(waiting[0]);
-				waiting[length - 1] = input[j];
-				
+			{	
+				count++;		
 			}
 		}
-		
-		comparePriority(waiting);
-		
-		while(x){
-			printf("fsjdkljfdskj");
-			for(int i=0; i < 4; i++)
-			{
-				printf("\n%i", waiting[i].pid);		
+		waiting = (PCB* )malloc(sizeof(PCB)*count);
+		for(int k = i+1; k < numProcesses; k++) {
+			if(input[k].arrivalTime < totalTurnaround)
+			{ 
+				waiting[k] = input[k];
 			}
-			x = false;
 		}
+		comparePriority();
 		 
+	}
+	for(int i=0; i < 4; i++)
+	{
+		printf("\n%i", waiting[i].pid);		
 	}
 	
 	fclose(file);
@@ -372,5 +342,6 @@ void metrics(int totalTurnaround)
 	printf("\nAverage Waiting Time = %f", avgWaitingTime);
 	
 }
+
 
 	
