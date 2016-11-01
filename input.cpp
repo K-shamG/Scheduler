@@ -275,6 +275,7 @@ int schedulerFCFS()
 
 void schedulerPriority() 
 {	
+	int processes = numProcesses; 
 	struct PCB *waiting;
 	bool finished = false;
 	int waitingIndex = 0;
@@ -301,6 +302,7 @@ void schedulerPriority()
 				totalTurnaround += input[index].executionTime;
 				input[index].turnaroundTime +=totalTurnaround;
 				input[index].ran = true;
+				processes--;
 			}
 			
 			for(int j = index+1; j < numProcesses; j++) {
@@ -309,6 +311,7 @@ void schedulerPriority()
 					if(input[j].arrived1 == false)
 					{
 						count++;
+						processes--;
 						input[j].arrived1 = true;
 					}
 				}
@@ -338,6 +341,11 @@ void schedulerPriority()
 				}
 			}
 			comparePriority(waiting);
+			for(int i = 0; i< count; i++) {
+				//printf("\n%i", waiting[i].pid);
+			}
+			//printf("\n");
+			
 			printf("\n%i", waitingIndex);
 			
 			for(int i = waitingIndex; i<count; i++)
@@ -365,10 +373,15 @@ void schedulerPriority()
 							input[j].ran = true; 
 						}
 					}
-					break;
+					if(processes != 0)
+					{
+						break;
+					}
 				}
 			}
+			
 			waitingIndex++;
+			//printf("\n%i", waitingIndex);
 				
 			for(int i = 0; i < numProcesses; i++) {
 				finished = input[i].ran;
