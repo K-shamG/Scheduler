@@ -36,8 +36,6 @@ void setArrivedToFalse();
 
 int main(int argc, char* argv[])						
 {									
-	//resetAllPCB();
-	
 	countProcesses();
 	parseInputFile();
 	
@@ -49,7 +47,6 @@ int main(int argc, char* argv[])
 	sortFCFS();
 	 setWaitToFalse();
 	schedulerPriority();
-	//printStruct();
 	
 	return 0;
 }
@@ -126,7 +123,7 @@ void promptUser()
 		
 		}
 		else if(in == 2) {
-			sortPriority();
+			//sortPriority();
 		}
 		else {
 			printf("\nInvalid command");
@@ -161,23 +158,6 @@ void sortFCFS()
 		for(int m=0;m<numProcesses-1-k;m++)    
 		{
 			if(input[m].arrivalTime>input[m+1].arrivalTime)
-			{
-				tmp=input[m];
-				input[m]=input[m+1];
-				input[m+1]=tmp;
-			}
-		}
-	 }
-}
-
-void sortPriority() 
-{
-	 //Create the ready queue and update every time a new process is scheduled
-	 for(int k=0;k<numProcesses-1;k++)
-	 {
-		for(int m=0;m<numProcesses-1-k;m++)    
-		{
-			if(input[m].priority>input[m+1].priority)
 			{
 				tmp=input[m];
 				input[m]=input[m+1];
@@ -292,7 +272,7 @@ void schedulerPriority()
 	int index = 0;
 	
 	while(!finished) {
-		//for(int i = 0; i < numProcesses; i++) {	
+		
 			if(index==0){
 				fprintf(file, "\t%i\t\t", totalTurnaround);
 				fprintf(file, "%i\t", input[index].pid);
@@ -306,7 +286,7 @@ void schedulerPriority()
 			}
 			
 			for(int j = index+1; j < numProcesses; j++) {
-				if(input[j].arrivalTime < totalTurnaround && input[j].ran == false) //&& input[j].arrived == false) 
+				if(input[j].arrivalTime < totalTurnaround && input[j].ran == false) 
 				{	
 					if(input[j].arrived1 == false)
 					{
@@ -334,17 +314,11 @@ void schedulerPriority()
 						
 							waiting[k-1].waitingTime = totalTurnaround - waiting[k-1].arrivalTime;
 							input[k].wait = true; 
-							
-							//printf("\n%i", waiting[k-1].pid);
 						}
 					}	
 				}
 			}
 			comparePriority(waiting);
-			for(int i = 0; i< count; i++) {
-				//printf("\n%i", waiting[i].pid);
-			}
-			//printf("\n");
 			
 			printf("\n%i", waitingIndex);
 			
@@ -381,18 +355,12 @@ void schedulerPriority()
 			}
 			
 			waitingIndex++;
-			//printf("\n%i", waitingIndex);
 				
 			for(int i = 0; i < numProcesses; i++) {
 				finished = input[i].ran;
 			}
 			
 		index++;
-	}
-	
-	
-	for(int i = 0; i < count; i++){
-		//printf("\n%i", waiting[i].pid);
 	}
 	
 	fclose(file);
