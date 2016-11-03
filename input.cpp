@@ -31,22 +31,14 @@ void parseInputFile();
 void metrics(int totalTurnaround);
 void resetAllPCB();
 void comparePriority();
-void schedulerPriority();
-void setArrivedToFalse();
+int schedulerPriority();
 
 int main(int argc, char* argv[])						
 {									
 	countProcesses();
 	parseInputFile();
 	
-	//promptUser();
-	//sortPriority();
-	//int wow = scheduler();
-	//metrics(wow);
-	
-	sortFCFS();
-	 setWaitToFalse();
-	schedulerPriority();
+	promptUser();
 	
 	return 0;
 }
@@ -113,25 +105,28 @@ void parseInputFile()
 void promptUser()
 {
 	int in, repeat;
-	int totalTurnaround;
+	int totalTurnaround, tt2;
 	while(true) { 
 		printStruct();   
 		printf("\nPress 1 to execute with FCFS, press 2 to execute by priority\n");
+		sortFCFS();
+		
 		scanf("%i", &in);
 		if(in == 1) {
-			sortFCFS();
-		
+			totalTurnaround = schedulerFCFS();
+			metrics(totalTurnaround);
+			resetAllPCB(); 
 		}
 		else if(in == 2) {
-			//sortPriority();
+			tt2 = schedulerPriority();
+			metrics(tt2);
+			resetAllPCB();
 		}
 		else {
 			printf("\nInvalid command");
 		}
-		totalTurnaround = schedulerFCFS();
-		metrics(totalTurnaround);
 		setWaitToFalse();
-		
+
 		printf("\nPress 1 to sort by another algorithm, press 2 to quit\n");
 		scanf("%i", &repeat);
 		
@@ -192,11 +187,10 @@ void resetAllPCB() {
 	for(int i = 0; i < numProcesses; i++) {
 		input[i].wait = false;
 		input[i].turnaroundTime = 0;
-		input[i].pid = 0;
-		input[i].arrivalTime = 0;
-		input[i].executionTime = 0;
-		input[i].priority = 0;
-		input[i].waitingTime = 0; 
+		input[i].waitingTime = 0;
+		input[i].arrived1 = false; 
+		input[i].arrived2 = false; 
+		input[i].ran = false; 
 	}
 }
 
@@ -241,19 +235,20 @@ int schedulerFCFS()
 				fprintf(file, "%i\t", input[j].pid);
 				const char *text4 = "ready\t\twaiting";
 				fprintf(file, "%s\n", text4);
-			
-				input[j].waitingTime = totalTurnaround - input[j].arrivalTime;
+
 			}
+			input[j].waitingTime = totalTurnaround - input[j].arrivalTime;
 			input[j].wait = true;
 		}
 	}
 	
 	fclose(file);
+	
 	return totalTurnaround;
 	
 }
 
-void schedulerPriority() 
+int schedulerPriority() 
 {	
 	int processes = numProcesses; 
 	struct PCB *waiting;
@@ -311,16 +306,13 @@ void schedulerPriority()
 							fprintf(file, "%i\t", waiting[k-1].pid);
 							const char *text4 = "ready\t\twaiting";
 							fprintf(file, "%s\n", text4);	
-						
-							waiting[k-1].waitingTime = totalTurnaround - waiting[k-1].arrivalTime;
-							input[k].wait = true; 
+			
+							input[k].wait = true; 	
 						}
 					}	
 				}
 			}
 			comparePriority(waiting);
-			
-			printf("\n%i", waitingIndex);
 			
 			for(int i = waitingIndex; i<count; i++)
 			{
@@ -344,7 +336,9 @@ void schedulerPriority()
 					for(int j = 0; j < numProcesses; j++) {
 						if(waiting[i].pid == input[j].pid) 
 						{
-							input[j].ran = true; 
+							input[j].ran = true;
+							input[j].turnaroundTime = waiting[i].turnaroundTime;
+							input[j].waitingTime = totalTurnaround - waiting[i].arrivalTime;
 						}
 					}
 					if(processes != 0)
@@ -365,6 +359,18 @@ void schedulerPriority()
 	
 	fclose(file);
 	
+	
+	printf("\n\nOrder processes will execute in:");
+	printf("\nProcess\t   Arrival Time\t   Execution Time    Priority");
+	printf("\n  %i\t\t%i\t\t%i, \t\t%i", input[0].pid, input[0].arrivalTime, input[0].executionTime, input[0].priority);
+	
+	for(int i = 0; i < count; i++) {
+		printf("\n  %i\t\t%i\t\t%i\t\t%i", waiting[i].pid, waiting[i].arrivalTime, waiting[i].executionTime, waiting[i].priority);
+	}
+		
+	
+	return totalTurnaround; 
+	
 }
 
 void metrics(int totalTurnaround)
@@ -374,7 +380,7 @@ void metrics(int totalTurnaround)
 	float throughput = 0;
 	float totalWaitingTime = 0;
 	float avgWaitingTime = 0;
-	printf("\nAverage Turnaround = %i", totalTurnaround);
+	printf("\nTotal Turnaround = %i", totalTurnaround);
 	for(int k = 0; k < numProcesses; k++) {										
 																		
 		averageTurnaround += input[k].turnaroundTime;
@@ -391,10 +397,11 @@ void metrics(int totalTurnaround)
 
 	for(int i = 0; i < numProcesses; i++) 
 	{
-		totalWaitingTime += input[i].executionTime;
+		totalWaitingTime += input[i].waitingTime;
 	}
 	avgWaitingTime = totalWaitingTime/numProcesses;
 	printf("\nAverage Waiting Time = %f", avgWaitingTime);
+
 	
 }
 

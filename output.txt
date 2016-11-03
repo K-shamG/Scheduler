@@ -3,11 +3,11 @@ Time of Transition	Pid	Old State	New State
 	9		2	ready		waiting
 	11		3	ready		waiting
 	13		4	ready		waiting
-	22		4	waiting		ready
-	22		4	ready		running
-	23		5	ready		waiting
-	33		5	waiting		ready
-	33		5	ready		running
+	17		5	ready		waiting
+	22		5	waiting		ready
+	22		5	ready		running
+	36		4	waiting		ready
+	36		4	ready		running
 	47		3	waiting		ready
 	47		3	ready		running
 	59		2	waiting		ready
