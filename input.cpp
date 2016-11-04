@@ -15,9 +15,9 @@ struct PCB
    int IODuration; 
    
    bool wait;
-   bool arrived1;
-   bool arrived2; 
-   bool ran;
+   bool arrived;
+   bool checked; 
+ //  bool ran;
 };
 
 struct PCB *input, tmp;
@@ -41,7 +41,12 @@ int main(int argc, char* argv[])
 	countProcesses();
 	parseInputFile();
 	
-	promptUser();
+	resetAllPCB();
+	
+	//promptUser();
+	
+	sortFCFS(); 
+	schedulerPriority(); 
 	
 	return 0;
 }
@@ -199,9 +204,9 @@ void resetAllPCB() {
 		input[i].wait = false;
 		input[i].turnaroundTime = 0;
 		input[i].waitingTime = 0;
-		input[i].arrived1 = false; 
-		input[i].arrived2 = false; 
-		input[i].ran = false; 
+		input[i].arrived = false; 
+		input[i].checked = false; 
+	//	input[i].ran = false; 
 	}
 }
 
@@ -307,238 +312,44 @@ int schedulerFCFS()
 	
 }
 
+
 int schedulerPriority() 
 {	
-	int processes = numProcesses; 
-	struct PCB *waiting;
-	bool finished = false;
-	int waitingIndex = 0;
+	int index = 0; 
+	struct PCB ready[numProcesses];
+	
 	FILE* file = fopen("output.txt", "w");
 	if(file == NULL) {
 		printf("Error opening file!\n");
 		exit(1);
 	}
-	
 	const char *text = "Time of Transition\tPid\tOld State\tNew State";
 	fprintf(file, "%s\n", text);
-
-	int totalTurnaround = input[0].arrivalTime; 
-	int index = 0;
 	
-	while(!finished) {
+	int totalTurnaround = input[0].arrivalTime;
+	
+	for(int i = 0; i < numProcesses; i++) 
+	{
+		if(input[i].arrivalTime <= totalTurnaround && input[i].checked == false)
+		{
+			ready[i] = input[i];
+		}
+		comparePriority(ready);
 		
-			if(index==0){
-				fprintf(file, "\t%i\t\t", totalTurnaround);
-				fprintf(file, "%i\t", input[index].pid);
-				const char *text3 = "ready\t\trunning";
-				fprintf(file, "%s\n", text3);
-				
-				int k = 0;  
-				while(k < input[0].executionTime - 1) {
-					if(k % input[0].IOFrequency == 0 || k == 0) { 
-						totalTurnaround += input[0].IOFrequency;
-						
-						int j;
-						for(j= index+1; j < processes; j++) {
-							if(input[j].wait == false && input[j].arrivalTime < totalTurnaround) {
-								fprintf(file, "\t%i\t\t", input[j].arrivalTime);
-								fprintf(file, "%i\t", input[j].pid);
-								const char *text4 = "ready\t\twaiting";
-								fprintf(file, "%s\n", text4);
-								
-								input[j].wait = true;
-							}
-						}
-						
-						fprintf(file, "\t%i\t\t", totalTurnaround);
-						fprintf(file, "%i\t", input[0].pid);
-						const char *text4 = "running\t\twaiting";
-						fprintf(file, "%s\n", text4);
-						
-						totalTurnaround += input[0].IODuration;
-						for(j= index+1; j < processes; j++) {
-							if(input[j].wait == false  && input[j].arrivalTime < totalTurnaround) {
-								fprintf(file, "\t%i\t\t", input[j].arrivalTime);
-								fprintf(file, "%i\t", input[j].pid);
-								const char *text4 = "ready\t\twaiting";
-								fprintf(file, "%s\n", text4);
-							
-								input[j].wait = true;
-							}
-						}
-						
-						
-						fprintf(file, "\t%i\t\t", totalTurnaround);
-						fprintf(file, "%i\t", input[0].pid);				
-						const char *text2 = "waiting\t\tready";
-						fprintf(file, "%s\n", text2);
-						
-						fprintf(file, "\t%i\t\t", totalTurnaround);
-						fprintf(file, "%i\t", input[0].pid);
-						const char *text3 = "ready\t\trunning";
-						fprintf(file, "%s\n", text3);
-						
-						k+= input[0].IODuration;
-					} else {
-						k++;
-					}
-						
-				}
-
-				totalTurnaround += input[index].IOFrequency;
-				input[index].turnaroundTime +=totalTurnaround;
-				input[index].ran = true;
-				processes--;
-			}
-			
-
-			for(int j = index+1; j < numProcesses; j++) {
-				if(input[j].arrivalTime < totalTurnaround && input[j].ran == false) 
-				{	
-					if(input[j].arrived1 == false)
-					{
-						count++;
-						processes--;
-						input[j].arrived1 = true;
-					}
-				}
-			}
-			waiting = (PCB* )malloc(sizeof(PCB)*count);
+		fprintf(file, "\t%i\t\t", totalTurnaround);
+		fprintf(file, "%i\t", ready[index].pid);
+		const char *text3 = "ready\t\trunning";
+		fprintf(file, "%s\n", text3);
 		
-			for(int k = 1; k < numProcesses; k++)
-			{
-				if(input[k].arrivalTime < totalTurnaround && input[k].ran == false)
-				{ 
-					if(input[k].arrived2 == false)
-					{		
-						waiting[k-1] = input[k];
-						if(input[k].wait == false) 
-						{
-							fprintf(file, "\t%i\t\t", waiting[k-1].arrivalTime);
-							fprintf(file, "%i\t", waiting[k-1].pid);
-							const char *text4 = "ready\t\twaiting";
-							fprintf(file, "%s\n", text4);	
-			
-							input[k].wait = true; 
-						}
-						
-					}	
-				}
-			}
-			comparePriority(waiting);
-			
-			for(int i = waitingIndex; i<count; i++)
-			{
-				if(waiting[i].ran == false) {
-					fprintf(file, "\t%i\t\t", totalTurnaround);			
-					fprintf(file, "%i\t", waiting[i].pid);				
-					const char *text2 = "waiting\t\tready";
-					fprintf(file, "%s\n", text2);
-				
-					fprintf(file, "\t%i\t\t", totalTurnaround);
-					fprintf(file, "%i\t", waiting[i].pid);
-					const char *text3 = "ready\t\trunning";
-					fprintf(file, "%s\n", text3);
-					
-					// MAKE THIS A METHOD LATER
-					int k = 0;
-					while(k < waiting[i].executionTime - 1) {
-						if(k % waiting[i].IOFrequency == 0 || k == 0) { 
-							totalTurnaround += waiting[i].IOFrequency;
-							int j;
-							for(j= i+1; j < processes; j++) {
-								if(waiting[j].wait == false  && waiting[j].arrivalTime < totalTurnaround) {
-									fprintf(file, "\t%i\t\t", waiting[j].arrivalTime);
-									fprintf(file, "%i\t", waiting[j].pid);
-									const char *text4 = "ready\t\twaiting";
-									fprintf(file, "%s\n", text4);
-									
-									waiting[j].wait = true;
-								}
-							}
-							
-							fprintf(file, "\t%i\t\t", totalTurnaround);
-							fprintf(file, "%i\t", waiting[i].pid);
-							
-							printf("\n******%i\t", waiting[i].pid);
-							
-							const char *text4 = "running\t\twaiting";
-							fprintf(file, "%s\n", text4);
-							
-							totalTurnaround += waiting[i].IODuration;
-							for(j= i+1; j < processes; j++) {
-								if(waiting[j].wait == false  && waiting[j].arrivalTime < totalTurnaround) {
-									fprintf(file, "\t%i\t\t", waiting[j].arrivalTime);
-									fprintf(file, "%i\t", waiting[j].pid);
-									const char *text4 = "ready\t\twaiting";
-									fprintf(file, "%s\n", text4);
-								
-									waiting[j].wait = true;
-								}
-							}
-							
-							fprintf(file, "\t%i\t\t", totalTurnaround);
-							fprintf(file, "%i\t", waiting[i].pid);				
-							const char *text2 = "waiting\t\tready";
-							fprintf(file, "%s\n", text2);
-							
-							fprintf(file, "\t%i\t\t", totalTurnaround);
-							fprintf(file, "%i\t", waiting[i].pid);
-							const char *text3 = "ready\t\trunning";
-							fprintf(file, "%s\n", text3);
-							
-							k+= waiting[i].IODuration;
-						} else {
-							k++;
-						}
-						
-				}
-					
-					//ENDS
-					
-					totalTurnaround += waiting[i].IOFrequency;
-					waiting[i].turnaroundTime +=totalTurnaround;
-					
-					waiting[i].ran = true; 
-					
-					for(int j = 0; j < numProcesses; j++) {
-						if(waiting[i].pid == input[j].pid) 
-						{
-							input[j].ran = true;
-							input[j].turnaroundTime = waiting[i].turnaroundTime;
-							input[j].waitingTime = totalTurnaround - waiting[i].arrivalTime;
-						}
-					}
-					
-					if(processes != 0)
-					{
-						break;
-					}
-				}
-				
-			}
-			
-			waitingIndex++;
-				
-			for(int i = 0; i < numProcesses; i++) {
-				finished = input[i].ran;
-			}
-			
+		totalTurnaround += ready[index].IOFrequency;
 		index++;
 		
 	}
 	
-	fclose(file);
 	
-	printf("\n\nOrder processes will execute in:");
-	printf("\nProcess\t   Arrival Time\t   Execution Time    Priority");
 	
-	printf("\n  %i\t\t%i\t\t%i \t\t%i", input[0].pid, input[0].arrivalTime, input[0].executionTime, input[0].priority);
 	
-	for(int i = 0; i < count; i++) {
-		printf("\n  %i\t\t%i\t\t%i\t\t%i", waiting[i].pid, waiting[i].arrivalTime, waiting[i].executionTime, waiting[i].priority);
-	}
-		
+	
 	return totalTurnaround; 
 	
 }

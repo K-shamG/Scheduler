@@ -1,0 +1,6 @@
+Time of Transition	Pid	Old State	New State
+	0		1	ready		running
+	1		0	ready		running
+	32766		3	ready		running
+	32767		4	ready		running
+	32768		5	ready		running
