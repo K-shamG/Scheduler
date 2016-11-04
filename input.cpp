@@ -35,6 +35,14 @@ void metrics(int totalTurnaround);
 void resetAllPCB();
 void comparePriority();
 int schedulerPriority();
+void schedulerFCFSReadyWaiting(int j, int processes,FILE* file, int totalTurnaround, int i);
+void schedulerFCFSWaitingReady(FILE* file, int totalTurnaround, int i);
+void schedulerFCFSReadyRunning(FILE* file, int totalTurnaround, int i);
+void schedulerFCFSRunningWaiting(FILE* file, int totalTurnaround, int i);
+void schedulerPriorityReadyWaiting(int index, FILE* file, struct PCB *sturcture, int processes, int totalTurnaround);
+void schedulerPriorityReadyRunning(int index, int totalTurnaround, struct PCB *sturcture, FILE* file);
+void schedulerPriorityRunningWaiting(int index, int totalTurnaround, struct PCB *sturcture, FILE* file);
+void schedulerPriorityWaitingReady(int index, int totalTurnaround, struct PCB *sturcture, FILE* file) ;
 
 int main(int argc, char* argv[])						
 {									
@@ -225,64 +233,27 @@ int schedulerFCFS()
 	
 	for(int i = 0; i < numProcesses; i++) {
 		if(i != 0){ 
-			fprintf(file, "\t%i\t\t", totalTurnaround);			
-			fprintf(file, "%i\t", input[i].pid);				
-			const char *text2 = "waiting\t\tready";
-			fprintf(file, "%s\n", text2);
+			schedulerFCFSWaitingReady(file, totalTurnaround, i);
 		}
 		
-		fprintf(file, "\t%i\t\t", totalTurnaround);
-		fprintf(file, "%i\t", input[i].pid);
-		const char *text3 = "ready\t\trunning";
-		fprintf(file, "%s\n", text3);
+		schedulerFCFSReadyRunning(file, totalTurnaround, i);
 		
 		int k = 0;  
 		while(k < input[i].executionTime - 1) {
 			if(k % input[i].IOFrequency == 0 || k == 0) {	
+				
 				totalTurnaround += input[i].IOFrequency;
-				int j;
-				for(j= i+1; j < processes; j++) {
-					if(input[j].wait == false && input[j].arrivalTime < totalTurnaround) {
-						fprintf(file, "\t%i\t\t", input[j].arrivalTime);
-						fprintf(file, "%i\t", input[j].pid);
-						const char *text4 = "ready\t\twaiting";
-						fprintf(file, "%s\n", text4);
-						
-						input[j].wait = true;
-					}
-				}
+				int j = 0;
 				
-				fprintf(file, "\t%i\t\t", totalTurnaround);
-				fprintf(file, "%i\t", input[i].pid);
-				const char *text4 = "running\t\twaiting";
-				fprintf(file, "%s\n", text4);
-				
+				schedulerFCFSReadyWaiting(j, processes, file, totalTurnaround, i);
+				schedulerFCFSRunningWaiting(file,totalTurnaround,i);
 				
 				totalTurnaround += input[i].IODuration;
-				for(j= i+1; j < processes; j++) {
-					if(input[j].wait == false  && input[j].arrivalTime < totalTurnaround) {
-						fprintf(file, "\t%i\t\t", input[j].arrivalTime);
-						fprintf(file, "%i\t", input[j].pid);
-						const char *text4 = "ready\t\twaiting";
-						fprintf(file, "%s\n", text4);
+				
+				schedulerFCFSReadyWaiting(j, processes, file, totalTurnaround, i);
+				schedulerFCFSWaitingReady(file, totalTurnaround, i);
+				schedulerFCFSReadyRunning(file, totalTurnaround, i);
 					
-						input[j].wait = true;
-					}
-					
-				}
-				
-				fprintf(file, "\t%i\t\t", totalTurnaround);
-				fprintf(file, "%i\t", input[i].pid);				
-				const char *text2 = "waiting\t\tready";
-				fprintf(file, "%s\n", text2);
-				
-				fprintf(file, "\t%i\t\t", totalTurnaround);
-				fprintf(file, "%i\t", input[i].pid);
-				const char *text3 = "ready\t\trunning";
-				fprintf(file, "%s\n", text3);
-				
-				
-				
 				k+= input[i].IODuration;
 			}
 			else {
@@ -303,6 +274,44 @@ int schedulerFCFS()
 	
 	return totalTurnaround;
 	
+}
+
+void schedulerFCFSReadyWaiting(int j, int processes,FILE* file, int totalTurnaround, int i)
+{
+	for(j= i+1; j < processes; j++) {
+		if(input[j].wait == false && input[j].arrivalTime < totalTurnaround) {
+			fprintf(file, "\t%i\t\t", input[j].arrivalTime);
+			fprintf(file, "%i\t", input[j].pid);
+			const char *text4 = "ready\t\twaiting";
+			fprintf(file, "%s\n", text4);
+			
+			input[j].wait = true;
+		}
+	}	
+}
+
+void schedulerFCFSWaitingReady(FILE* file, int totalTurnaround, int i)
+{
+	fprintf(file, "\t%i\t\t", totalTurnaround);			
+	fprintf(file, "%i\t", input[i].pid);				
+	const char *text2 = "waiting\t\tready";
+	fprintf(file, "%s\n", text2);
+}
+
+void schedulerFCFSReadyRunning(FILE* file, int totalTurnaround, int i)
+{
+	fprintf(file, "\t%i\t\t", totalTurnaround);
+	fprintf(file, "%i\t", input[i].pid);
+	const char *text3 = "ready\t\trunning";
+	fprintf(file, "%s\n", text3);
+}
+
+void schedulerFCFSRunningWaiting(FILE* file, int totalTurnaround, int i)
+{
+	fprintf(file, "\t%i\t\t", totalTurnaround);
+	fprintf(file, "%i\t", input[i].pid);
+	const char *text4 = "running\t\twaiting";
+	fprintf(file, "%s\n", text4);
 }
 
 
@@ -329,55 +338,21 @@ int schedulerPriority()
 	while(!finished) {
 		
 			if(index==0){
-				fprintf(file, "\t%i\t\t", totalTurnaround);
-				fprintf(file, "%i\t", input[index].pid);
-				const char *text3 = "ready\t\trunning";
-				fprintf(file, "%s\n", text3);
-				
+				schedulerPriorityReadyRunning(index, totalTurnaround, input, file);
+
 				int k = 0;  
 				while(k < input[0].executionTime - 1) {
 					if(k % input[0].IOFrequency == 0 || k == 0) { 
 						totalTurnaround += input[0].IOFrequency;
 						
-						int j;
-						for(j= index+1; j < processes; j++) {
-							if(input[j].wait == false && input[j].arrivalTime < totalTurnaround) {
-								fprintf(file, "\t%i\t\t", input[j].arrivalTime);
-								fprintf(file, "%i\t", input[j].pid);
-								const char *text4 = "ready\t\twaiting";
-								fprintf(file, "%s\n", text4);
-								
-								input[j].wait = true;
-							}
-						}
-						
-						fprintf(file, "\t%i\t\t", totalTurnaround);
-						fprintf(file, "%i\t", input[0].pid);
-						const char *text4 = "running\t\twaiting";
-						fprintf(file, "%s\n", text4);
-						
+						schedulerPriorityReadyWaiting(index+1, file, input, processes, totalTurnaround );
+						schedulerPriorityRunningWaiting(0,totalTurnaround, input, file);
+		
 						totalTurnaround += input[0].IODuration;
-						for(j= index+1; j < processes; j++) {
-							if(input[j].wait == false  && input[j].arrivalTime < totalTurnaround) {
-								fprintf(file, "\t%i\t\t", input[j].arrivalTime);
-								fprintf(file, "%i\t", input[j].pid);
-								const char *text4 = "ready\t\twaiting";
-								fprintf(file, "%s\n", text4);
-							
-								input[j].wait = true;
-							}
-						}
-						
-						
-						fprintf(file, "\t%i\t\t", totalTurnaround);
-						fprintf(file, "%i\t", input[0].pid);				
-						const char *text2 = "waiting\t\tready";
-						fprintf(file, "%s\n", text2);
-						
-						fprintf(file, "\t%i\t\t", totalTurnaround);
-						fprintf(file, "%i\t", input[0].pid);
-						const char *text3 = "ready\t\trunning";
-						fprintf(file, "%s\n", text3);
+					
+						schedulerPriorityReadyWaiting(index+1, file, input, processes, totalTurnaround);
+						schedulerPriorityWaitingReady(0, totalTurnaround, input,file);
+						schedulerPriorityReadyRunning(0, totalTurnaround, input, file);
 						
 						k+= input[0].IODuration;
 					} else {
@@ -385,7 +360,6 @@ int schedulerPriority()
 					}
 						
 				}
-
 				totalTurnaround += input[index].IOFrequency;
 				input[index].turnaroundTime +=totalTurnaround;
 				input[index].ran = true;
@@ -404,6 +378,7 @@ int schedulerPriority()
 					}
 				}
 			}
+			
 			waiting = (PCB* )malloc(sizeof(PCB)*count);
 		
 			for(int k = 1; k < numProcesses; k++)
@@ -431,66 +406,28 @@ int schedulerPriority()
 			for(int i = waitingIndex; i<count; i++)
 			{
 				if(waiting[i].ran == false) {
-					fprintf(file, "\t%i\t\t", totalTurnaround);			
-					fprintf(file, "%i\t", waiting[i].pid);				
-					const char *text2 = "waiting\t\tready";
-					fprintf(file, "%s\n", text2);
-				
-					fprintf(file, "\t%i\t\t", totalTurnaround);
-					fprintf(file, "%i\t", waiting[i].pid);
-					const char *text3 = "ready\t\trunning";
-					fprintf(file, "%s\n", text3);
-					
+					schedulerPriorityWaitingReady(i, totalTurnaround, waiting,file);
+					schedulerPriorityReadyRunning(i, totalTurnaround, waiting, file);
+
 					// MAKE THIS A METHOD LATER
 					int k = 0;
 					while(k < waiting[i].executionTime - 1) {
 						if(k % waiting[i].IOFrequency == 0 || k == 0) { 
 							totalTurnaround += waiting[i].IOFrequency;
-							int j;
-							for(j= i+1; j < processes; j++) {
-								if(waiting[j].wait == false  && waiting[j].arrivalTime < totalTurnaround) {
-									fprintf(file, "\t%i\t\t", waiting[j].arrivalTime);
-									fprintf(file, "%i\t", waiting[j].pid);
-									const char *text4 = "ready\t\twaiting";
-									fprintf(file, "%s\n", text4);
-									
-									waiting[j].wait = true;
-								}
-							}
 							
-							fprintf(file, "\t%i\t\t", totalTurnaround);
-							fprintf(file, "%i\t", waiting[i].pid);
-							
-							const char *text4 = "running\t\twaiting";
-							fprintf(file, "%s\n", text4);
+							schedulerPriorityReadyWaiting(i+1, file, waiting, processes, totalTurnaround);
+							schedulerPriorityRunningWaiting(i,totalTurnaround, waiting, file);
 							
 							totalTurnaround += waiting[i].IODuration;
-							for(j= i+1; j < processes; j++) {
-								if(waiting[j].wait == false  && waiting[j].arrivalTime < totalTurnaround) {
-									fprintf(file, "\t%i\t\t", waiting[j].arrivalTime);
-									fprintf(file, "%i\t", waiting[j].pid);
-									const char *text4 = "ready\t\twaiting";
-									fprintf(file, "%s\n", text4);
-								
-									waiting[j].wait = true;
-								}
-							}
 							
-							fprintf(file, "\t%i\t\t", totalTurnaround);
-							fprintf(file, "%i\t", waiting[i].pid);				
-							const char *text2 = "waiting\t\tready";
-							fprintf(file, "%s\n", text2);
-							
-							fprintf(file, "\t%i\t\t", totalTurnaround);
-							fprintf(file, "%i\t", waiting[i].pid);
-							const char *text3 = "ready\t\trunning";
-							fprintf(file, "%s\n", text3);
+							schedulerPriorityReadyWaiting(i+1, file, waiting, processes, totalTurnaround);	
+							schedulerPriorityWaitingReady(i, totalTurnaround, waiting,file);				
+							schedulerPriorityReadyRunning(i, totalTurnaround, waiting, file);
 							
 							k+= waiting[i].IODuration;
 						} else {
 							k++;
-						}
-						
+						}		
 				}
 					
 					//ENDS
@@ -541,6 +478,49 @@ int schedulerPriority()
 		
 	return totalTurnaround; 
 	
+}
+
+void schedulerPriorityReadyWaiting(int index, FILE* file, struct PCB *sturcture, int processes, int totalTurnaround)
+{
+	int j = 0;
+	for(j= index; j < processes; j++) {
+		if(input[j].wait == false && sturcture[j].arrivalTime < totalTurnaround) {
+			
+			fprintf(file, "\t%i\t\t", sturcture[index].arrivalTime);
+			fprintf(file, "%i\t", sturcture[index].pid);
+			const char *text4 = "ready\t\twaiting";
+			fprintf(file, "%s\n", text4);
+			
+			sturcture[j].wait = true;
+		}
+	}
+
+}
+
+
+
+void schedulerPriorityReadyRunning(int index, int totalTurnaround, struct PCB *sturcture, FILE* file) 
+{
+	fprintf(file, "\t%i\t\t", totalTurnaround);
+	fprintf(file, "%i\t", sturcture[index].pid);
+	const char *text3 = "ready\t\trunning";
+	fprintf(file, "%s\n", text3);
+}
+
+void schedulerPriorityRunningWaiting(int index, int totalTurnaround, struct PCB *sturcture, FILE* file) 
+{
+	fprintf(file, "\t%i\t\t", totalTurnaround);
+	fprintf(file, "%i\t", sturcture[index].pid);
+	const char *text4 = "running\t\twaiting";
+	fprintf(file, "%s\n", text4);
+}
+
+void schedulerPriorityWaitingReady(int index, int totalTurnaround, struct PCB *sturcture, FILE* file) 
+{
+	fprintf(file, "\t%i\t\t", totalTurnaround);
+	fprintf(file, "%i\t", sturcture[index].pid);				
+	const char *text2 = "waiting\t\tready";
+	fprintf(file, "%s\n", text2);
 }
 
 void metrics(int totalTurnaround)
