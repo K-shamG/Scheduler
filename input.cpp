@@ -461,8 +461,6 @@ int schedulerPriority()
 							fprintf(file, "\t%i\t\t", totalTurnaround);
 							fprintf(file, "%i\t", waiting[i].pid);
 							
-							printf("\n******%i\t", waiting[i].pid);
-							
 							const char *text4 = "running\t\twaiting";
 							fprintf(file, "%s\n", text4);
 							
@@ -535,13 +533,7 @@ int schedulerPriority()
 	
 	printf("\n\nOrder processes will execute in:");
 	printf("\nProcess\t   Arrival Time\t   Execution Time    Priority");
-	/*
-	printf("\n  %i\t\t%i\t\t%i \t\t%i", input[0].pid, input[0].arrivalTime, input[0].executionTime, input[0].priority);
-	
-	for(int i = 0; i < count; i++) {
-		printf("\n  %i\t\t%i\t\t%i\t\t%i", waiting[i].pid, waiting[i].arrivalTime, waiting[i].executionTime, waiting[i].priority);
-	}
-	*/
+
 	
 	for(int i = 0; i < numProcesses; i++) {
 		printf("\n  %i\t\t%i\t\t%i \t\t%i", copy[i].pid, copy[i].arrivalTime, copy[i].executionTime, copy[i].priority);
