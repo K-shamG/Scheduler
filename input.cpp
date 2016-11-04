@@ -297,8 +297,6 @@ int schedulerFCFS()
 			input[j].waitingTime = totalTurnaround - input[j].arrivalTime;
 		}
 		
-		
-		
 	}
 	
 	fclose(file);
@@ -307,10 +305,11 @@ int schedulerFCFS()
 	
 }
 
+
 int schedulerPriority() 
 {	
 	int processes = numProcesses; 
-	struct PCB *waiting;
+	struct PCB *waiting, copy[numProcesses];
 	bool finished = false;
 	int waitingIndex = 0;
 	FILE* file = fopen("output.txt", "w");
@@ -319,6 +318,8 @@ int schedulerPriority()
 		exit(1);
 	}
 	
+	copy[0] = input[0];
+
 	const char *text = "Time of Transition\tPid\tOld State\tNew State";
 	fprintf(file, "%s\n", text);
 
@@ -498,6 +499,8 @@ int schedulerPriority()
 					
 					totalTurnaround += waiting[i].IOFrequency;
 					waiting[i].turnaroundTime +=totalTurnaround;
+					copy[i+1] = waiting[i];
+					
 					
 					waiting[i].ran = true; 
 					
@@ -532,11 +535,16 @@ int schedulerPriority()
 	
 	printf("\n\nOrder processes will execute in:");
 	printf("\nProcess\t   Arrival Time\t   Execution Time    Priority");
-	
+	/*
 	printf("\n  %i\t\t%i\t\t%i \t\t%i", input[0].pid, input[0].arrivalTime, input[0].executionTime, input[0].priority);
 	
 	for(int i = 0; i < count; i++) {
 		printf("\n  %i\t\t%i\t\t%i\t\t%i", waiting[i].pid, waiting[i].arrivalTime, waiting[i].executionTime, waiting[i].priority);
+	}
+	*/
+	
+	for(int i = 0; i < numProcesses; i++) {
+		printf("\n  %i\t\t%i\t\t%i \t\t%i", copy[i].pid, copy[i].arrivalTime, copy[i].executionTime, copy[i].priority);
 	}
 		
 	return totalTurnaround; 
@@ -568,6 +576,7 @@ void metrics(int totalTurnaround)
 	printf("\nAverage Waiting Time = %f", avgWaitingTime);
 	
 }
+
 
 
 	
