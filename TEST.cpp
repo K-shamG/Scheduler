@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -297,8 +296,6 @@ int schedulerFCFS()
 			input[j].waitingTime = totalTurnaround - input[j].arrivalTime;
 		}
 		
-		
-		
 	}
 	
 	fclose(file);
@@ -332,66 +329,13 @@ int schedulerPriority()
 				fprintf(file, "%i\t", input[index].pid);
 				const char *text3 = "ready\t\trunning";
 				fprintf(file, "%s\n", text3);
-				
-				int k = 0;  
-				while(k < input[0].executionTime - 1) {
-					if(k % input[0].IOFrequency == 0 || k == 0) { 
-						totalTurnaround += input[0].IOFrequency;
-						
-						int j;
-						for(j= index+1; j < processes; j++) {
-							if(input[j].wait == false && input[j].arrivalTime < totalTurnaround) {
-								fprintf(file, "\t%i\t\t", input[j].arrivalTime);
-								fprintf(file, "%i\t", input[j].pid);
-								const char *text4 = "ready\t\twaiting";
-								fprintf(file, "%s\n", text4);
-								
-								input[j].wait = true;
-							}
-						}
-						
-						fprintf(file, "\t%i\t\t", totalTurnaround);
-						fprintf(file, "%i\t", input[0].pid);
-						const char *text4 = "running\t\twaiting";
-						fprintf(file, "%s\n", text4);
-						
-						totalTurnaround += input[0].IODuration;
-						for(j= index+1; j < processes; j++) {
-							if(input[j].wait == false  && input[j].arrivalTime < totalTurnaround) {
-								fprintf(file, "\t%i\t\t", input[j].arrivalTime);
-								fprintf(file, "%i\t", input[j].pid);
-								const char *text4 = "ready\t\twaiting";
-								fprintf(file, "%s\n", text4);
-							
-								input[j].wait = true;
-							}
-						}
-						
-						
-						fprintf(file, "\t%i\t\t", totalTurnaround);
-						fprintf(file, "%i\t", input[0].pid);				
-						const char *text2 = "waiting\t\tready";
-						fprintf(file, "%s\n", text2);
-						
-						fprintf(file, "\t%i\t\t", totalTurnaround);
-						fprintf(file, "%i\t", input[0].pid);
-						const char *text3 = "ready\t\trunning";
-						fprintf(file, "%s\n", text3);
-						
-						k+= input[0].IODuration;
-					} else {
-						k++;
-					}
-						
-				}
-
-				totalTurnaround += input[index].IOFrequency;
+			
+				totalTurnaround += input[index].executionTime;
 				input[index].turnaroundTime +=totalTurnaround;
 				input[index].ran = true;
 				processes--;
 			}
 			
-
 			for(int j = index+1; j < numProcesses; j++) {
 				if(input[j].arrivalTime < totalTurnaround && input[j].ran == false) 
 				{	
@@ -404,7 +348,7 @@ int schedulerPriority()
 				}
 			}
 			waiting = (PCB* )malloc(sizeof(PCB)*count);
-		
+
 			for(int k = 1; k < numProcesses; k++)
 			{
 				if(input[k].arrivalTime < totalTurnaround && input[k].ran == false)
@@ -419,9 +363,8 @@ int schedulerPriority()
 							const char *text4 = "ready\t\twaiting";
 							fprintf(file, "%s\n", text4);	
 			
-							input[k].wait = true; 
+							input[k].wait = true; 	
 						}
-						
 					}	
 				}
 			}
@@ -430,6 +373,7 @@ int schedulerPriority()
 			for(int i = waitingIndex; i<count; i++)
 			{
 				if(waiting[i].ran == false) {
+					
 					fprintf(file, "\t%i\t\t", totalTurnaround);			
 					fprintf(file, "%i\t", waiting[i].pid);				
 					const char *text2 = "waiting\t\tready";
@@ -440,63 +384,7 @@ int schedulerPriority()
 					const char *text3 = "ready\t\trunning";
 					fprintf(file, "%s\n", text3);
 					
-					// MAKE THIS A METHOD LATER
-					int k = 0;
-					while(k < waiting[i].executionTime - 1) {
-						if(k % waiting[i].IOFrequency == 0 || k == 0) { 
-							totalTurnaround += waiting[i].IOFrequency;
-							int j;
-							for(j= i+1; j < processes; j++) {
-								if(waiting[j].wait == false  && waiting[j].arrivalTime < totalTurnaround) {
-									fprintf(file, "\t%i\t\t", waiting[j].arrivalTime);
-									fprintf(file, "%i\t", waiting[j].pid);
-									const char *text4 = "ready\t\twaiting";
-									fprintf(file, "%s\n", text4);
-									
-									waiting[j].wait = true;
-								}
-							}
-							
-							fprintf(file, "\t%i\t\t", totalTurnaround);
-							fprintf(file, "%i\t", waiting[i].pid);
-							
-							printf("\n******%i\t", waiting[i].pid);
-							
-							const char *text4 = "running\t\twaiting";
-							fprintf(file, "%s\n", text4);
-							
-							totalTurnaround += waiting[i].IODuration;
-							for(j= i+1; j < processes; j++) {
-								if(waiting[j].wait == false  && waiting[j].arrivalTime < totalTurnaround) {
-									fprintf(file, "\t%i\t\t", waiting[j].arrivalTime);
-									fprintf(file, "%i\t", waiting[j].pid);
-									const char *text4 = "ready\t\twaiting";
-									fprintf(file, "%s\n", text4);
-								
-									waiting[j].wait = true;
-								}
-							}
-							
-							fprintf(file, "\t%i\t\t", totalTurnaround);
-							fprintf(file, "%i\t", waiting[i].pid);				
-							const char *text2 = "waiting\t\tready";
-							fprintf(file, "%s\n", text2);
-							
-							fprintf(file, "\t%i\t\t", totalTurnaround);
-							fprintf(file, "%i\t", waiting[i].pid);
-							const char *text3 = "ready\t\trunning";
-							fprintf(file, "%s\n", text3);
-							
-							k+= waiting[i].IODuration;
-						} else {
-							k++;
-						}
-						
-				}
-					
-					//ENDS
-					
-					totalTurnaround += waiting[i].IOFrequency;
+					totalTurnaround += waiting[i].executionTime;
 					waiting[i].turnaroundTime +=totalTurnaround;
 					
 					waiting[i].ran = true; 
@@ -509,13 +397,11 @@ int schedulerPriority()
 							input[j].waitingTime = totalTurnaround - waiting[i].arrivalTime;
 						}
 					}
-					
 					if(processes != 0)
 					{
 						break;
 					}
 				}
-				
 			}
 			
 			waitingIndex++;
@@ -525,20 +411,20 @@ int schedulerPriority()
 			}
 			
 		index++;
-		
 	}
 	
 	fclose(file);
 	
+	
 	printf("\n\nOrder processes will execute in:");
 	printf("\nProcess\t   Arrival Time\t   Execution Time    Priority");
-	
-	printf("\n  %i\t\t%i\t\t%i \t\t%i", input[0].pid, input[0].arrivalTime, input[0].executionTime, input[0].priority);
+	printf("\n  %i\t\t%i\t\t%i, \t\t%i", input[0].pid, input[0].arrivalTime, input[0].executionTime, input[0].priority);
 	
 	for(int i = 0; i < count; i++) {
 		printf("\n  %i\t\t%i\t\t%i\t\t%i", waiting[i].pid, waiting[i].arrivalTime, waiting[i].executionTime, waiting[i].priority);
 	}
 		
+	
 	return totalTurnaround; 
 	
 }
@@ -568,6 +454,3 @@ void metrics(int totalTurnaround)
 	printf("\nAverage Waiting Time = %f", avgWaitingTime);
 	
 }
-
-
-	
