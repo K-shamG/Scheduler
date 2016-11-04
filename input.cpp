@@ -139,7 +139,7 @@ void promptUser()
 void printStruct()
 {
 	printf("\nProcess\t   Arrival Time\t   Execution Time");
-	for(int i=0; i < 5; i++)
+	for(int i=0; i < numProcesses; i++)
     {
 		printf("\n  %i\t\t%i\t\t%i", input[i].pid, input[i].arrivalTime, input[i].executionTime);		
 	}
@@ -362,7 +362,7 @@ int schedulerPriority()
 	
 	printf("\n\nOrder processes will execute in:");
 	printf("\nProcess\t   Arrival Time\t   Execution Time    Priority");
-	printf("\n  %i\t\t%i\t\t%i, \t\t%i", input[0].pid, input[0].arrivalTime, input[0].executionTime, input[0].priority);
+	printf("\n  %i\t\t%i\t\t%i \t\t%i", input[0].pid, input[0].arrivalTime, input[0].executionTime, input[0].priority);
 	
 	for(int i = 0; i < count; i++) {
 		printf("\n  %i\t\t%i\t\t%i\t\t%i", waiting[i].pid, waiting[i].arrivalTime, waiting[i].executionTime, waiting[i].priority);
