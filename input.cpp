@@ -1,9 +1,15 @@
-
+/**
+	FCFS and Priority Scheduler with IO. 
+	Takes input file pinput.txt
+	
+	@author Kshamina Ghelani
+	@author Supriya Gadigone
+**/
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
-struct PCB 			
+struct PCB 			// struct to represent process control block for each process	
 {
    int pid;
    int arrivalTime;
@@ -20,31 +26,44 @@ struct PCB
    bool ran;
 };
 
-struct PCB *input, tmp;
+
+struct PCB *input, tmp;  // input is a collection of all processes PCB's, tmp is later used for swapping
  	
-int numProcesses, count;
+int numProcesses, count; 
+
 void printStruct();
 void sortFCFS();
 void setWaitToFalse();
 void sortPriority();
-int schedulerFCFSIO();
+
+// formatting methods
 void promptUser();
 void countProcesses();
 void parseInputFile();
+
 void metrics(int totalTurnaround);
 void resetAllPCB();
 void comparePriority();
-int schedulerPriority();
+
+// FCFS methods
 void schedulerFCFSReadyWaiting(int j, int processes,FILE* file, int totalTurnaround, int i);
 void schedulerFCFSWaitingReady(FILE* file, int totalTurnaround, int i);
 void schedulerFCFSReadyRunning(FILE* file, int totalTurnaround, int i);
 void schedulerFCFSRunningWaiting(FILE* file, int totalTurnaround, int i);
+
+// Scheduler Priority methods
 void schedulerPriorityReadyWaiting(int index, FILE* file, struct PCB *sturcture, int processes, int totalTurnaround);
 void schedulerPriorityReadyRunning(int index, int totalTurnaround, struct PCB *sturcture, FILE* file);
 void schedulerPriorityRunningWaiting(int index, int totalTurnaround, struct PCB *sturcture, FILE* file);
 void schedulerPriorityWaitingReady(int index, int totalTurnaround, struct PCB *sturcture, FILE* file) ;
-int schedulerFCFS();
 
+int schedulerFCFS();
+int schedulerFCFSIO();
+int schedulerPriority();
+
+/**
+ Main 
+ **/
 int main(int argc, char* argv[])						
 {									
 	countProcesses();
@@ -55,11 +74,14 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
-
+/**
+	Opens the input files and counts the number of lines. 
+	Sets it to the global variable numProcesses 
+*/
 void countProcesses()
 {
 	numProcesses = 0;
-	FILE* file = fopen("input.txt", "r"); 	
+	FILE* file = fopen("input.txt", "r"); 	 // open file for reading
 	char line[256];	
      while (fgets(line, sizeof(line), file)) {
 		 numProcesses++;
@@ -69,6 +91,11 @@ void countProcesses()
     fclose(file);
 }
 
+/**
+	Opens the input file "pinput.txt" for reading and enters the information
+	for each processes' PCB
+	
+*/
 void parseInputFile()
 {
 	char *token;
@@ -80,9 +107,9 @@ void parseInputFile()
 	FILE* file = fopen("input.txt", "r"); 		
     char line[256];
 
-    while (fgets(line, sizeof(line), file)) {
+    while (fgets(line, sizeof(line), file)) { 	// iterate through lines in file
 		data = line;
-		token = strtok(data, delimeter);
+		token = strtok(data, delimeter);  // iterate through each "token" (delimeter is a space)
 
 		while( token != NULL ) 
 		{
@@ -116,12 +143,21 @@ void parseInputFile()
 			token = strtok(NULL, delimeter);
 			counter++;
 		}
-		counter = 0;
+		counter = 0;								// reset the conter
 		i++;
     } 
-    fclose(file);
+    fclose(file);									// close the file
 }
 
+
+/**
+	Prompts the user on which scheduling algorithm they would like to use. 
+	1 - FCFS
+	2 - Priority
+	
+	1 - another algorithm
+	2 - quit
+*/
 void promptUser()
 {
 	int in, repeat;
@@ -131,7 +167,7 @@ void promptUser()
 		printf("\nPress 1 to execute with FCFS, press 2 to execute by priority\n");
 		sortFCFS();
 		
-		scanf("%i", &in);
+		scanf("%i", &in);		// read user inputted value
 		if(in == 1) {
 			totalTurnaround = schedulerFCFS();
 			metrics(totalTurnaround);
@@ -156,6 +192,11 @@ void promptUser()
 	}
 	
 }
+
+
+/**
+	Print out all the processes and their required PCB information
+*/
 void printStruct()
 {
 	printf("\nProcess\t   Arrival Time\t   Execution Time  Priority  IO Frequency IO Duration");
@@ -165,9 +206,13 @@ void printStruct()
 	}
 }
 
+
+/**
+	Sort processes by arrival time
+*/
 void sortFCFS()
 {
-	 //Create the ready queue and update every time a new process is scheduled
+	//Create the ready queue and update every time a new process is scheduled
 	 for(int k=0;k<numProcesses-1;k++)
 	 {
 		for(int m=0;m<numProcesses-1-k;m++)    
@@ -175,13 +220,17 @@ void sortFCFS()
 			if(input[m].arrivalTime>input[m+1].arrivalTime)
 			{
 				tmp=input[m];
-				input[m]=input[m+1];
+				input[m]=input[m+1];			// tmp variable used to not override variable
 				input[m+1]=tmp;
 			}
 		}
 	 }
 }
 
+/**
+	Takes in an array of struct PCB
+	Sorts by priority
+*/
 void comparePriority(struct PCB *waiting) {
 	for(int k=0;k<count-1;k++)
 	{
@@ -197,12 +246,20 @@ void comparePriority(struct PCB *waiting) {
 	 }
 }
 
+/**
+	Sets boolean wait in all PCB's to false
+*/
 void setWaitToFalse() {
 	for(int i = 0; i < numProcesses; i++) {
 		input[i].wait = false;
 	}
 }
 
+/**
+	Resets all temporary process values
+	(Temporary as in they change every time a different scheduler is executed)
+	
+*/
 void resetAllPCB() {
 	for(int i = 0; i < numProcesses; i++) {
 		input[i].wait = false;
@@ -214,16 +271,18 @@ void resetAllPCB() {
 	}
 }
 
-
+/**
+	First Come First Serve Scheduler with IO
+*/
 int schedulerFCFSIO()
 {
 	int totalTurnaround = input[0].arrivalTime;
-	if(input[0].IOFrequency == 0)
+	if(input[0].IOFrequency == 0) 
 	{
 		schedulerFCFS();
 	}
 	else{
-	FILE* file = fopen("output.txt", "w");
+	FILE* file = fopen("output.txt", "w");	//open file
 	if(file == NULL) {
 		printf("Error opening file!\n");
 		exit(1);
@@ -233,7 +292,7 @@ int schedulerFCFSIO()
 	fprintf(file, "%s\n", text);	
 	
 	printf("\n\nOrder processes will execute in:");
-	printStruct(); 
+	printStruct(); 					//print the structure
 	
 	
 	int processes = numProcesses; 
@@ -252,10 +311,10 @@ int schedulerFCFSIO()
 				totalTurnaround += input[i].IOFrequency;
 				int j = 0;
 				
-				schedulerFCFSReadyWaiting(j, processes, file, totalTurnaround, i);
+				schedulerFCFSReadyWaiting(j, processes, file, totalTurnaround, i);  
 				schedulerFCFSRunningWaiting(file,totalTurnaround,i);
 				
-				totalTurnaround += input[i].IODuration;
+				totalTurnaround += input[i].IODuration;		//add the duration
 				
 				schedulerFCFSReadyWaiting(j, processes, file, totalTurnaround, i);
 				schedulerFCFSWaitingReady(file, totalTurnaround, i);
@@ -276,15 +335,16 @@ int schedulerFCFSIO()
 		}
 		
 	}
-
-	
-	fclose(file);
+	    fclose(file);					//close the file
 	}
-	return totalTurnaround;
-	
-	
+	return totalTurnaround;		
 }
 
+/**
+	First Come First Serve Scheduler
+	
+	Returns the total turnaround, i.e. the total time taken for all processes to execute. 
+*/
 
 int schedulerFCFS()
 {
@@ -300,35 +360,35 @@ int schedulerFCFS()
 	printf("\n\nOrder processes will execute in:");
 	printStruct(); 
 	
-	int totalTurnaround = input[0].arrivalTime;
+	int totalTurnaround = input[0].arrivalTime;		// total time passed so far is when the first process arrives
 	int processes = numProcesses; 
 	
 	for(int i = 0; i < numProcesses; i++) {
 		if(i != 0){ 
-			fprintf(file, "\t%i\t\t", totalTurnaround);			
+			fprintf(file, "\t%i\t\t", totalTurnaround);		  // process 1 will never be waiting	
 			fprintf(file, "%i\t", input[i].pid);				
 			const char *text2 = "waiting\t\tready";
 			fprintf(file, "%s\n", text2);
 		}
 		
-		fprintf(file, "\t%i\t\t", totalTurnaround);
+		fprintf(file, "\t%i\t\t", totalTurnaround);     // process starts running
 		fprintf(file, "%i\t", input[i].pid);
 		const char *text3 = "ready\t\trunning";
 		fprintf(file, "%s\n", text3);
 				
-		totalTurnaround += input[i].executionTime;
+		totalTurnaround += input[i].executionTime;      // total time passed is how long each processes burst time
 		input[i].turnaroundTime +=totalTurnaround;
 
 		int j;
-		for(j= i+1; j < processes; j++) {
+		for(j= i+1; j < processes; j++) {		// iterate through the remaining processes 
 			if(input[j].wait == false) {
 				fprintf(file, "\t%i\t\t", input[j].arrivalTime);
 				fprintf(file, "%i\t", input[j].pid);
-				const char *text4 = "ready\t\twaiting";
+				const char *text4 = "ready\t\twaiting"; 
 				fprintf(file, "%s\n", text4);
 
 			}
-			input[j].waitingTime = totalTurnaround - input[j].arrivalTime;
+			input[j].waitingTime = totalTurnaround - input[j].arrivalTime;    // add to the remaining processes waiting time
 			input[j].wait = true;
 		}
 	}
@@ -339,7 +399,9 @@ int schedulerFCFS()
 	
 }
 
-
+/**
+	Ready and Waiting for Scheduler FCFS.
+**/
 void schedulerFCFSReadyWaiting(int j, int processes,FILE* file, int totalTurnaround, int i)
 {
 	for(j= i+1; j < processes; j++) {
@@ -354,6 +416,9 @@ void schedulerFCFSReadyWaiting(int j, int processes,FILE* file, int totalTurnaro
 	}	
 }
 
+/**
+	Waiting and Ready for Scheduler FCFS.
+**/
 void schedulerFCFSWaitingReady(FILE* file, int totalTurnaround, int i)
 {
 	fprintf(file, "\t%i\t\t", totalTurnaround);			
@@ -362,6 +427,9 @@ void schedulerFCFSWaitingReady(FILE* file, int totalTurnaround, int i)
 	fprintf(file, "%s\n", text2);
 }
 
+/**
+	Ready and Running for Scheduler FCFS.
+**/
 void schedulerFCFSReadyRunning(FILE* file, int totalTurnaround, int i)
 {
 	fprintf(file, "\t%i\t\t", totalTurnaround);
@@ -370,6 +438,9 @@ void schedulerFCFSReadyRunning(FILE* file, int totalTurnaround, int i)
 	fprintf(file, "%s\n", text3);
 }
 
+/**
+	Running and Waiting for Scheduler FCFS.
+**/
 void schedulerFCFSRunningWaiting(FILE* file, int totalTurnaround, int i)
 {
 	fprintf(file, "\t%i\t\t", totalTurnaround);
@@ -378,14 +449,18 @@ void schedulerFCFSRunningWaiting(FILE* file, int totalTurnaround, int i)
 	fprintf(file, "%s\n", text4);
 }
 
-
+/**
+	Priority Scheduler
+	
+	Returns the total turnaround, i.e. the total time taken for all processes to execute. 
+*/
 int schedulerPriority() 
 {	
 	int processes = numProcesses; 
 	struct PCB *waiting, copy[numProcesses];
 	bool finished = false;
 	int waitingIndex = 0;
-	FILE* file = fopen("output.txt", "w");
+	FILE* file = fopen("output.txt", "w");   // open file to write to, called output.txt
 	if(file == NULL) {
 		printf("Error opening file!\n");
 		exit(1);
@@ -393,10 +468,10 @@ int schedulerPriority()
 	
 	copy[0] = input[0];
 
-	const char *text = "Time of Transition\tPid\tOld State\tNew State";
+	const char *text = "Time of Transition\tPid\tOld State\tNew State";     // output table headers
 	fprintf(file, "%s\n", text);
 
-	int totalTurnaround = input[0].arrivalTime; 
+	int totalTurnaround = input[0].arrivalTime;   // total time passed so far is when the first process arrives
 	int index = 0;
 	
 	while(!finished) {
@@ -436,14 +511,14 @@ int schedulerPriority()
 				{	
 					if(input[j].arrived1 == false)
 					{
-						count++;
-						processes--;
+						count++;			// number of processes to go in the waiting (i.e. the ready) queue
+						processes--;	    // process counts as arrived
 						input[j].arrived1 = true;
 					}
 				}
 			}
 			
-			waiting = (PCB* )malloc(sizeof(PCB)*count);
+			waiting = (PCB* )malloc(sizeof(PCB)*count);	// allocate enough memory in waiting for processes that have arrived
 		
 			for(int k = 1; k < numProcesses; k++)
 			{
@@ -473,7 +548,6 @@ int schedulerPriority()
 					schedulerPriorityWaitingReady(i, totalTurnaround, waiting,file);
 					schedulerPriorityReadyRunning(i, totalTurnaround, waiting, file);
 
-					// MAKE THIS A METHOD LATER
 					int k = 0;
 					while(k < waiting[i].executionTime - 1) {
 						if(k % waiting[i].IOFrequency == 0 || k == 0) { 
@@ -494,8 +568,6 @@ int schedulerPriority()
 						}		
 				}
 					
-					//ENDS
-					
 					totalTurnaround += waiting[i].IOFrequency;
 					waiting[i].turnaroundTime +=totalTurnaround;
 					copy[i+1] = waiting[i];
@@ -504,7 +576,7 @@ int schedulerPriority()
 					waiting[i].ran = true; 
 					
 					for(int j = 0; j < numProcesses; j++) {
-						if(waiting[i].pid == input[j].pid) 
+						if(waiting[i].pid == input[j].pid) 			// set values in input to values in waiting in order to calculate metrics properly
 						{
 							input[j].ran = true;
 							input[j].turnaroundTime = waiting[i].turnaroundTime;
@@ -512,7 +584,7 @@ int schedulerPriority()
 						}
 					}
 					
-					if(processes != 0)
+					if(processes != 0)		 // if all processes have not arrived yet, loop through again. Otherwise, they have all arrived so keep running the rest
 					{
 						break;
 					}
@@ -523,7 +595,7 @@ int schedulerPriority()
 			waitingIndex++;
 				
 			for(int i = 0; i < numProcesses; i++) {
-				finished = input[i].ran;
+				finished = input[i].ran;		// If all have been set to true, this means they have all executed. We are now done. 
 			}
 			
 		index++;
@@ -540,10 +612,12 @@ int schedulerPriority()
 		printf("\n  %i\t\t%i\t\t%i \t\t%i", copy[i].pid, copy[i].arrivalTime, copy[i].executionTime, copy[i].priority);
 	}
 		
-	return totalTurnaround; 
-	
+	return totalTurnaround; 	
 }
 
+/**
+	Ready and Waiting for Priority Scheduling.
+**/
 void schedulerPriorityReadyWaiting(int index, FILE* file, struct PCB *sturcture, int processes, int totalTurnaround)
 {
 	int j = 0;
@@ -562,7 +636,9 @@ void schedulerPriorityReadyWaiting(int index, FILE* file, struct PCB *sturcture,
 }
 
 
-
+/**
+	Ready and Running for Priority Scheduling.
+**/
 void schedulerPriorityReadyRunning(int index, int totalTurnaround, struct PCB *sturcture, FILE* file) 
 {
 	fprintf(file, "\t%i\t\t", totalTurnaround);
@@ -571,6 +647,9 @@ void schedulerPriorityReadyRunning(int index, int totalTurnaround, struct PCB *s
 	fprintf(file, "%s\n", text3);
 }
 
+/**
+	Running and Waiting for Priority Scheduling.
+**/
 void schedulerPriorityRunningWaiting(int index, int totalTurnaround, struct PCB *sturcture, FILE* file) 
 {
 	fprintf(file, "\t%i\t\t", totalTurnaround);
@@ -579,6 +658,9 @@ void schedulerPriorityRunningWaiting(int index, int totalTurnaround, struct PCB 
 	fprintf(file, "%s\n", text4);
 }
 
+/**
+	Waiting and Ready for Priority Scheduling.
+**/
 void schedulerPriorityWaitingReady(int index, int totalTurnaround, struct PCB *sturcture, FILE* file) 
 {
 	fprintf(file, "\t%i\t\t", totalTurnaround);
@@ -587,6 +669,17 @@ void schedulerPriorityWaitingReady(int index, int totalTurnaround, struct PCB *s
 	fprintf(file, "%s\n", text2);
 }
 
+/**
+	Metrics to calculate and display on the console
+	
+	Total Turnaround Time
+	Average Turnaround Time
+	Throughput
+	Average Waiting Time
+	
+	Takes in totalTurnaroundTime from the schedulers
+
+*/
 void metrics(int totalTurnaround)
 {	
 	float averageTurnaround;
